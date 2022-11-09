@@ -37,7 +37,7 @@ class VideoPreviewActivity : BaseActivity(), VideoPreviewBar.PreviewBarCallback,
                 if (videoPreviewBar != null && playController != null) {
                     videoPreviewBar!!.updateProgress(playController!!.currentPosition())
                 }
-                this.sendEmptyMessageDelayed(MSG_UPDATE, TIME_UPDATE.toLong())
+                this.sendEmptyMessageDelayed(MSG_UPDATE, TIME_UPDATE)
             } else if (msg.what == MSG_TOAST) {
                 showToast(getString(R.string.please_click_select))
             }
@@ -58,6 +58,10 @@ class VideoPreviewActivity : BaseActivity(), VideoPreviewBar.PreviewBarCallback,
     private fun initView() {
         surfaceVideo = getView(R.id.surface_view)
         videoPreviewBar = getView(R.id.preview_video)
+
+        surfaceVideo?.setOnClickListener {
+            playController?.togglePlay()
+        }
     }
 
     private fun setPlayCallback(filePath: String, surfaceView: SurfaceView) {
@@ -129,7 +133,7 @@ class VideoPreviewActivity : BaseActivity(), VideoPreviewBar.PreviewBarCallback,
     companion object {
 
         private val TAG = VideoPreviewActivity::class.java.simpleName
-        private const val TIME_UPDATE = 1000
+        private const val TIME_UPDATE = 1000L
         private const val MSG_UPDATE = 1234
     }
 

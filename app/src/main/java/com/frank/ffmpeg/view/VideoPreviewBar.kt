@@ -105,7 +105,7 @@ class VideoPreviewBar : RelativeLayout, MediaDecodeController.OnDataCallback {
     private fun setListener() {
         previewBar!!.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (!fromUser) {
+                if (!fromUser || duration == 0) {
                     return
                 }
                 previewBar!!.progress = progress
