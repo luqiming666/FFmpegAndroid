@@ -305,13 +305,8 @@ public class FFmpegUtil {
      * @return transform video success or not
      */
     public static String[] transformVideo(String inputPath, String outputPath) {
-        //just copy codec
-//        String transformVideoCmd = "ffmpeg -i %s -vcodec copy -acodec copy %s";
-        // assign the frameRate, bitRate and resolution
-//        String transformVideoCmd = "ffmpeg -i %s -r 25 -b 200 -s 1080x720 %s";
-        // assign the encoder
-//        ffmpeg -i %s -vcodec libx264 -acodec libmp3lame %s
-        String transformVideoCmd = "ffmpeg -i -vcodec libx264 -acodec libmp3lame";
+        // preset: ultrafast > superfast > veryfast > fast > medium > slow > veryslow
+        String transformVideoCmd = "ffmpeg -i -vcodec libx264 -acodec libmp3lame -threads 8 -preset superfast";
         return insert(transformVideoCmd.split(" "), 2, inputPath, outputPath);
     }
 
@@ -339,9 +334,9 @@ public class FFmpegUtil {
         String transformVideoCmd;
         if (width > 0 && height > 0) {
             String scale = "-vf scale=" + width + ":" + height;
-            transformVideoCmd = "ffmpeg -i -vcodec libx264 -acodec aac " + scale;
+            transformVideoCmd = "ffmpeg -i -vcodec libx264 -threads 8 -preset superfast -acodec aac " + scale;
         } else {
-            transformVideoCmd = "ffmpeg -i -vcodec libx264 -acodec aac";
+            transformVideoCmd = "ffmpeg -i -vcodec libx264 -threads 8 -preset superfast -acodec aac";
         }
         return insert(transformVideoCmd.split(" "), 2, inputPath, outputPath);
     }
@@ -403,7 +398,8 @@ public class FFmpegUtil {
                 return "overlay='(main_w-overlay_w)-" + offsetX + ":(main_h-overlay_h)-" + offsetY + "'";
             case 1:
             default:
-                return "overlay=" + offsetX + ":" + offsetY;
+                // move from to right
+                return "overlay=(10+t*20):" + offsetY;
         }
     }
 
@@ -422,7 +418,7 @@ public class FFmpegUtil {
                                            int offsetXY, String outputPath) {
         String mBitRate = bitRate + "k";
         String overlay = obtainOverlay(offsetXY, offsetXY, location);
-        String waterMarkCmd = "ffmpeg -i -i -b:v %s -filter_complex %s -preset:v superfast";
+        String waterMarkCmd = "ffmpeg -i -i -b:v %s -filter_complex %s -preset:v superfast -y";
         waterMarkCmd = String.format(waterMarkCmd, mBitRate, overlay);
         return insert(waterMarkCmd.split(" "), 2, inputPath, 4, imgPath, outputPath);
     }
@@ -571,7 +567,6 @@ public class FFmpegUtil {
      * @return reverse success or not
      */
     public static String[] reverseVideo(String inputPath, String outputPath) {
-        //-vf reverse: only video reverse, -an: disable audio
         //tip: reverse will cost a lot of time, only short video are recommended
         String reverseVideo = "ffmpeg -i -vf reverse -an";
         return insert(reverseVideo.split(" "), 2, inputPath, outputPath);
@@ -780,17 +775,6 @@ public class FFmpegUtil {
     }
 
     /**
-     * Rebuild the keyframe index of FLV, make it seekable
-     * @param inputPath inputFile
-     * @param outputPath targetFile
-     * @return command of building flv index
-     */
-    public static String[] buildFlvIndex(String inputPath, String outputPath) {
-        String buildIndex = "ffmpeg -i -flvflags add_keyframe_index";
-        return insert(buildIndex.split(" "), 2, inputPath, outputPath);
-    }
-
-    /**
      * Insert the picture into the header of video, which as a thumbnail
      * @param inputPath inputFile
      * @param picturePath the path of thumbnail
@@ -836,12 +820,6 @@ public class FFmpegUtil {
         String rotateCmd = "ffmpeg -i -c copy -metadata:s:v:0 rotate=%d";
         rotateCmd = String.format(Locale.getDefault(), rotateCmd, rotateDegree);
         return insert(rotateCmd.split(" "), 2, inputPath, outputPath);
-    }
-
-    public static String[] changeGOP(String inputPath, int gop, String outputPath) {
-        String gopCmd = "ffmpeg -i -g %d";
-        gopCmd = String.format(Locale.getDefault(), gopCmd, gop);
-        return insert(gopCmd.split(" "), 2, inputPath, outputPath);
     }
 
     /**
